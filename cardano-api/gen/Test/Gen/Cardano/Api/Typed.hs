@@ -118,14 +118,13 @@ import           Cardano.Api hiding (txIns)
 import qualified Cardano.Api as Api
 import           Cardano.Api.Byron (KeyWitness (ByronKeyWitness),
                    WitnessNetworkIdOrByronAddress (..))
-import           Cardano.Api.Shelley (GovernancePoll (..), GovernancePollAnswer (..),
-                   Hash (..), KESPeriod (KESPeriod),
+import           Cardano.Api.Shelley (GovernancePoll (..), GovernancePollAnswer (..), Hash (..),
+                   KESPeriod (KESPeriod),
                    OperationalCertificateIssueCounter (OperationalCertificateIssueCounter),
                    PlutusScript (PlutusScriptSerialised), ProtocolParameters (..),
                    ReferenceScript (..), ReferenceTxInsScriptsInlineDatumsSupportedInEra (..),
                    StakeCredential (StakeCredentialByKey), StakePoolKey,
                    refInsScriptsAndInlineDatsSupportedInEra)
-
 
 import           Control.Applicative (optional)
 import           Data.ByteString (ByteString)
@@ -851,7 +850,7 @@ genProtocolParameters era = do
   protocolParamPoolPledgeInfluence <- genRationalInt64
   protocolParamMonetaryExpansion <- genRational
   protocolParamTreasuryCut <- genRational
-  protocolParamUTxOCostPerWord <- sequence $ supportedInEra ProtocolParameterUTxOCostPerWord era $> genLovelace
+  protocolParamUTxOCostPerWord <- Api.supportedInEraF era . ProtocolParameterUTxOCostPerWord <$> genLovelace
   protocolParamCostModels <- pure mempty
   --TODO: Babbage figure out how to deal with
   -- asymmetric cost model JSON instances
@@ -884,7 +883,7 @@ genProtocolParametersUpdate era = do
   protocolUpdatePoolPledgeInfluence <- Gen.maybe genRationalInt64
   protocolUpdateMonetaryExpansion   <- Gen.maybe genRational
   protocolUpdateTreasuryCut         <- Gen.maybe genRational
-  protocolUpdateUTxOCostPerWord     <- sequence $ supportedInEra ProtocolParameterUTxOCostPerWord era $> genLovelace
+  protocolUpdateUTxOCostPerWord     <- Api.supportedInEraF era . ProtocolParameterUTxOCostPerWord <$> genLovelace
   let protocolUpdateCostModels = mempty -- genCostModels
   --TODO: Babbage figure out how to deal with
   -- asymmetric cost model JSON instances

@@ -278,6 +278,9 @@ instance TestEquality CardanoEra where
     testEquality ConwayEra  ConwayEra  = Just Refl
     testEquality _          _          = Nothing
 
+instance FeatureInEra CardanoEra where
+  featureInEra _ yes = yes
+
 instance ToCardanoEra CardanoEra where
   toCardanoEra = id
 
@@ -435,6 +438,16 @@ instance TestEquality ShelleyBasedEra where
     testEquality ShelleyBasedEraBabbage ShelleyBasedEraBabbage = Just Refl
     testEquality ShelleyBasedEraConway  ShelleyBasedEraConway  = Just Refl
     testEquality _                      _                      = Nothing
+
+instance FeatureInEra ShelleyBasedEra where
+  featureInEra no yes = \case
+    ByronEra    -> no
+    ShelleyEra  -> yes ShelleyBasedEraShelley
+    AllegraEra  -> yes ShelleyBasedEraAllegra
+    MaryEra     -> yes ShelleyBasedEraMary
+    AlonzoEra   -> yes ShelleyBasedEraAlonzo
+    BabbageEra  -> yes ShelleyBasedEraBabbage
+    ConwayEra   -> yes ShelleyBasedEraConway
 
 instance ToCardanoEra ShelleyBasedEra where
   toCardanoEra = \case

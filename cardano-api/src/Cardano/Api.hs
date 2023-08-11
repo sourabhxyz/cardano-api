@@ -59,6 +59,13 @@ module Cardano.Api (
     shelleyToMaryEraToCardanoEra,
     shelleyToMaryEraToShelleyBasedEra,
 
+    AlonzoEraOnwards(..),
+    IsAlonzoEraOnwards(..),
+    AnyAlonzoEraOnwards(..),
+    alonzoEraOnwardsConstraints,
+    alonzoEraOnwardsToCardanoEra,
+    alonzoEraOnwardsToShelleyBasedEra,
+
     ConwayEraOnwards(..),
     IsConwayEraOnwards(..),
     AnyConwayEraOnwards(..),
@@ -970,6 +977,7 @@ import           Cardano.Api.EraCast
 import           Cardano.Api.Eras
 import           Cardano.Api.Error
 import           Cardano.Api.Feature
+import           Cardano.Api.Feature.AlonzoEraOnwards
 import           Cardano.Api.Feature.ConwayEraOnwards
 import           Cardano.Api.Feature.ShelleyToAlonzoEra
 import           Cardano.Api.Feature.ShelleyToBabbageEra

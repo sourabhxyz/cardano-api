@@ -132,10 +132,10 @@ import           Cardano.Ledger.BaseTypes (StrictMaybe (..))
 import qualified Cardano.Ledger.Binary as Binary (decCBOR, decodeFullAnnotator)
 import           Cardano.Ledger.Core (Era (EraCrypto))
 import qualified Cardano.Ledger.Core as Ledger
+import Cardano.Ledger.Crypto
 import qualified Cardano.Ledger.Keys as Shelley
 import qualified Cardano.Ledger.Shelley.Scripts as Shelley
 import           Cardano.Slotting.Slot (SlotNo)
-import           Ouroboros.Consensus.Shelley.Eras (StandardCrypto)
 import qualified PlutusLedgerApi.Test.Examples as Plutus
 
 import           Control.Applicative

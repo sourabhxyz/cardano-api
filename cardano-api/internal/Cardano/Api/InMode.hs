@@ -30,19 +30,10 @@ import           Cardano.Api.Modes
 import           Cardano.Api.Tx
 import           Cardano.Api.TxBody
 
-import qualified Ouroboros.Consensus.Byron.Ledger as Consensus
-import qualified Ouroboros.Consensus.Cardano.Block as Consensus
-import qualified Ouroboros.Consensus.HardFork.Combinator as Consensus
-import           Ouroboros.Consensus.HardFork.Combinator.AcrossEras (EraMismatch)
-import qualified Ouroboros.Consensus.HardFork.Combinator.Degenerate as Consensus
-import qualified Ouroboros.Consensus.Ledger.SupportsMempool as Consensus
-import qualified Ouroboros.Consensus.Ledger.SupportsProtocol as Consensus
-import qualified Ouroboros.Consensus.Protocol.TPraos as TPraos
-import qualified Ouroboros.Consensus.Shelley.HFEras as Consensus
-import qualified Ouroboros.Consensus.Shelley.Ledger as Consensus
-import qualified Ouroboros.Consensus.TypeFamilyWrappers as Consensus
+import qualified Cardano.Consensus.API as Consensus
 
 import           Data.SOP.Strict (NS (S, Z))
+import Cardano.Ledger.Crypto (StandardCrypto)
 
 
 -- ----------------------------------------------------------------------------
@@ -311,7 +302,7 @@ data TxValidationErrorInMode mode where
                              -> EraInMode era mode
                              -> TxValidationErrorInMode mode
 
-     TxValidationEraMismatch :: EraMismatch
+     TxValidationEraMismatch :: Consensus.EraMismatch
                              -> TxValidationErrorInMode mode
 
 deriving instance Show (TxValidationErrorInMode mode)
@@ -320,8 +311,8 @@ deriving instance Show (TxValidationErrorInMode mode)
 fromConsensusApplyTxErr :: ConsensusBlockForMode mode ~ block
                         => Consensus.LedgerSupportsProtocol
                              (Consensus.ShelleyBlock
-                             (TPraos.TPraos Consensus.StandardCrypto)
-                             (Consensus.ShelleyEra Consensus.StandardCrypto))
+                             (Consensus.TPraos StandardCrypto)
+                             (Consensus.ShelleyEra StandardCrypto))
                         => ConsensusMode mode
                         -> Consensus.ApplyTxErr block
                         -> TxValidationErrorInMode mode

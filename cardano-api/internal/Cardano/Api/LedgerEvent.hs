@@ -43,13 +43,7 @@ import           Cardano.Ledger.Shelley.Rules (RupdEvent (..), ShelleyBbodyEvent
                    ShelleyUtxowEvent (UtxoEvent))
 import qualified Cardano.Ledger.Shelley.Rules as Shelley (ShelleyLedgerEvent (UtxowEvent),
                    ShelleyLedgersEvent (LedgerEvent))
-import           Ouroboros.Consensus.Byron.Ledger.Block (ByronBlock)
-import           Ouroboros.Consensus.Cardano.Block (HardForkBlock)
-import           Ouroboros.Consensus.HardFork.Combinator.AcrossEras (getOneEraLedgerEvent)
-import           Ouroboros.Consensus.Ledger.Basics (AuxLedgerEvent)
-import           Ouroboros.Consensus.Shelley.Ledger (LedgerState, ShelleyBlock,
-                   ShelleyLedgerEvent (ShelleyLedgerEventBBODY, ShelleyLedgerEventTICK))
-import           Ouroboros.Consensus.TypeFamilyWrappers (WrapLedgerEvent (unwrapLedgerEvent))
+import qualified Cardano.Consensus.API as Consensus
 
 import           Control.State.Transition (Event)
 import           Data.List.NonEmpty (NonEmpty)
@@ -77,41 +71,41 @@ data LedgerEvent
   | FailedPlutusScript (NonEmpty PlutusDebug)
 
 class ConvertLedgerEvent blk where
-  toLedgerEvent :: WrapLedgerEvent blk -> Maybe LedgerEvent
+  toLedgerEvent :: Consensus.WrapLedgerEvent blk -> Maybe LedgerEvent
 
-instance ConvertLedgerEvent ByronBlock where
+instance ConvertLedgerEvent Consensus.ByronBlock where
   toLedgerEvent _ = Nothing
 
-instance ConvertLedgerEvent (ShelleyBlock protocol (ShelleyEra StandardCrypto)) where
+instance ConvertLedgerEvent (Consensus.ShelleyBlock protocol (ShelleyEra StandardCrypto)) where
   toLedgerEvent = toLedgerEventShelley
 
-instance ConvertLedgerEvent (ShelleyBlock protocol (MaryEra StandardCrypto)) where
+instance ConvertLedgerEvent (Consensus.ShelleyBlock protocol (MaryEra StandardCrypto)) where
   toLedgerEvent = toLedgerEventShelley
 
-instance ConvertLedgerEvent (ShelleyBlock protocol (AllegraEra StandardCrypto)) where
+instance ConvertLedgerEvent (Consensus.ShelleyBlock protocol (AllegraEra StandardCrypto)) where
   toLedgerEvent = toLedgerEventShelley
 
-instance ConvertLedgerEvent (ShelleyBlock protocol (AlonzoEra StandardCrypto)) where
-  toLedgerEvent evt = case unwrapLedgerEvent evt of
+instance ConvertLedgerEvent (Consensus.ShelleyBlock protocol (AlonzoEra StandardCrypto)) where
+  toLedgerEvent evt = case Consensus.unwrapLedgerEvent evt of
     LEPlutusSuccess ds -> Just $ SuccessfulPlutusScript ds
     LEPlutusFailure ds -> Just $ FailedPlutusScript ds
     _ -> toLedgerEventShelley evt
 
-instance ConvertLedgerEvent (ShelleyBlock protocol (BabbageEra StandardCrypto)) where
-  toLedgerEvent evt = case unwrapLedgerEvent evt of
+instance ConvertLedgerEvent (Consensus.ShelleyBlock protocol (BabbageEra StandardCrypto)) where
+  toLedgerEvent evt = case Consensus.unwrapLedgerEvent evt of
     LEPlutusSuccess ds -> Just $ SuccessfulPlutusScript ds
     LEPlutusFailure ds -> Just $ FailedPlutusScript ds
     _ -> toLedgerEventShelley evt
 
-instance ConvertLedgerEvent (ShelleyBlock protocol (ConwayEra StandardCrypto)) where
+instance ConvertLedgerEvent (Consensus.ShelleyBlock protocol (ConwayEra StandardCrypto)) where
   toLedgerEvent _evt = Nothing -- LEDGER rule is defined anew in Conway
 
-instance All ConvertLedgerEvent xs => ConvertLedgerEvent (HardForkBlock xs) where
+instance All ConvertLedgerEvent xs => ConvertLedgerEvent (Consensus.HardForkBlock xs) where
   toLedgerEvent =
     hcollapse
       . hcmap (Proxy @ConvertLedgerEvent) (K . toLedgerEvent)
-      . getOneEraLedgerEvent
-      . unwrapLedgerEvent
+      . Consensus.getOneEraLedgerEvent
+      . Consensus.unwrapLedgerEvent
 
 toLedgerEventShelley ::
   ( EraCrypto ledgerera ~ StandardCrypto,
@@ -122,9 +116,9 @@ toLedgerEventShelley ::
     Event (Ledger.Core.EraRule "MIR" ledgerera) ~ ShelleyMirEvent ledgerera,
     Event (Ledger.Core.EraRule "RUPD" ledgerera) ~ RupdEvent StandardCrypto
   ) =>
-  WrapLedgerEvent (ShelleyBlock protocol ledgerera) ->
+  Consensus.WrapLedgerEvent (Consensus.ShelleyBlock protocol ledgerera) ->
   Maybe LedgerEvent
-toLedgerEventShelley evt = case unwrapLedgerEvent evt of
+toLedgerEventShelley evt = case Consensus.unwrapLedgerEvent evt of
   LEDeltaRewardEvent e m -> Just $ IncrementalRewardsDistribution e m
   LERewardEvent e m -> Just $ RewardsDistribution e m
   LEMirTransfer rp rt rtt ttr ->
@@ -172,9 +166,9 @@ pattern LERewardEvent ::
   ) =>
   EpochNo ->
   Map StakeCredential (Set (Reward StandardCrypto)) ->
-  AuxLedgerEvent (LedgerState (ShelleyBlock protocol ledgerera))
+  Consensus.AuxLedgerEvent (Consensus.LedgerState (Consensus.ShelleyBlock protocol ledgerera))
 pattern LERewardEvent e m <-
-  ShelleyLedgerEventTICK
+  Consensus.ShelleyLedgerEventTICK
     (TickNewEpochEvent (TotalRewardEvent e (Map.mapKeys fromShelleyStakeCredential -> m)))
 
 pattern LEDeltaRewardEvent ::
@@ -185,9 +179,9 @@ pattern LEDeltaRewardEvent ::
   ) =>
   EpochNo ->
   Map StakeCredential (Set (Reward StandardCrypto)) ->
-  AuxLedgerEvent (LedgerState (ShelleyBlock protocol ledgerera))
+  Consensus.AuxLedgerEvent (Consensus.LedgerState (Consensus.ShelleyBlock protocol ledgerera))
 pattern LEDeltaRewardEvent e m <-
-  ShelleyLedgerEventTICK
+  Consensus.ShelleyLedgerEventTICK
     (TickNewEpochEvent (DeltaRewardEvent (RupdEvent e (Map.mapKeys fromShelleyStakeCredential -> m))))
 
 pattern LEMirTransfer ::
@@ -200,9 +194,9 @@ pattern LEMirTransfer ::
   Map StakeCredential Lovelace ->
   Lovelace ->
   Lovelace ->
-  AuxLedgerEvent (LedgerState (ShelleyBlock protocol ledgerera))
+  Consensus.AuxLedgerEvent (Consensus.LedgerState (Consensus.ShelleyBlock protocol ledgerera))
 pattern LEMirTransfer rp tp rtt ttr <-
-  ShelleyLedgerEventTICK
+  Consensus.ShelleyLedgerEventTICK
     ( TickNewEpochEvent
         ( MirEvent
             ( MirTransfer
@@ -226,9 +220,9 @@ pattern LERetiredPools ::
   Map StakeCredential (Map (Hash StakePoolKey) Lovelace) ->
   Map StakeCredential (Map (Hash StakePoolKey) Lovelace) ->
   EpochNo ->
-  AuxLedgerEvent (LedgerState (ShelleyBlock protocol ledgerera))
+  Consensus.AuxLedgerEvent (Consensus.LedgerState (Consensus.ShelleyBlock protocol ledgerera))
 pattern LERetiredPools r u e <-
-  ShelleyLedgerEventTICK
+  Consensus.ShelleyLedgerEventTICK
     ( TickNewEpochEvent
         ( EpochEvent
             ( PoolReapEvent
@@ -251,9 +245,9 @@ pattern LEPlutusSuccess ::
     Event (Ledger.Core.EraRule "UTXOS" ledgerera) ~ AlonzoUtxosEvent ledgerera
   ) =>
   NonEmpty PlutusDebug ->
-  AuxLedgerEvent (LedgerState (ShelleyBlock protocol ledgerera))
+  Consensus.AuxLedgerEvent (Consensus.LedgerState (Consensus.ShelleyBlock protocol ledgerera))
 pattern LEPlutusSuccess ds <-
-  ShelleyLedgerEventBBODY
+  Consensus.ShelleyLedgerEventBBODY
     ( ShelleyInAlonzoEvent
         ( LedgersEvent
             ( Shelley.LedgerEvent
@@ -281,9 +275,9 @@ pattern LEPlutusFailure ::
     Event (Ledger.Core.EraRule "UTXOS" ledgerera) ~ AlonzoUtxosEvent ledgerera
   ) =>
   NonEmpty PlutusDebug ->
-  AuxLedgerEvent (LedgerState (ShelleyBlock protocol ledgerera))
+  Consensus.AuxLedgerEvent (Consensus.LedgerState (Consensus.ShelleyBlock protocol ledgerera))
 pattern LEPlutusFailure ds <-
-  ShelleyLedgerEventBBODY
+  Consensus.ShelleyLedgerEventBBODY
     ( ShelleyInAlonzoEvent
         ( LedgersEvent
             ( Shelley.LedgerEvent

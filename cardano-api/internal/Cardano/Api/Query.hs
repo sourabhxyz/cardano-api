@@ -68,7 +68,7 @@ module Cardano.Api.Query (
 
     slotToEpoch,
 
-    LedgerState(..),
+    Consensus.LedgerState(..),
 
     getProgress,
     getSlotForRelativeTime,
@@ -98,28 +98,16 @@ import           Cardano.Ledger.Binary
 import qualified Cardano.Ledger.Binary.Plain as Plain
 import           Cardano.Ledger.Core (EraCrypto)
 import qualified Cardano.Ledger.Credential as Shelley
-import           Cardano.Ledger.Crypto (Crypto)
+import           Cardano.Ledger.Crypto (Crypto, StandardCrypto)
 import           Cardano.Ledger.SafeHash (SafeHash)
+import Cardano.Ledger.Slot (EpochInfo)
 import qualified Cardano.Ledger.Shelley.API as Shelley
 import qualified Cardano.Ledger.Shelley.Core as Core
 import qualified Cardano.Ledger.Shelley.LedgerState as Shelley
 import           Cardano.Slotting.EpochInfo (hoistEpochInfo)
 import           Cardano.Slotting.Slot (WithOrigin (..))
-import           Cardano.Slotting.Time (SystemStart (..))
-import           Ouroboros.Consensus.BlockchainTime.WallClock.Types (RelativeTime, SlotLength)
-import qualified Ouroboros.Consensus.Byron.Ledger as Consensus
-import           Ouroboros.Consensus.Cardano.Block (LedgerState (..), StandardCrypto)
-import qualified Ouroboros.Consensus.Cardano.Block as Consensus
-import qualified Ouroboros.Consensus.HardFork.Combinator as Consensus
-import           Ouroboros.Consensus.HardFork.Combinator.AcrossEras (EraMismatch)
-import qualified Ouroboros.Consensus.HardFork.Combinator.AcrossEras as Consensus
-import qualified Ouroboros.Consensus.HardFork.Combinator.Degenerate as Consensus
-import qualified Ouroboros.Consensus.HardFork.History as Consensus
-import qualified Ouroboros.Consensus.HardFork.History as History
-import qualified Ouroboros.Consensus.HardFork.History.Qry as Qry
-import qualified Ouroboros.Consensus.Ledger.Query as Consensus
-import qualified Ouroboros.Consensus.Protocol.Abstract as Consensus
-import qualified Ouroboros.Consensus.Shelley.Ledger as Consensus
+import           Cardano.Slotting.Time (SystemStart (..), RelativeTime, SlotLength)
+import qualified Cardano.Consensus.API as Consensus
 import           Ouroboros.Network.Block (Serialised (..))
 import           Ouroboros.Network.NodeToClient.Version (NodeToClientVersion (..))
 import           Ouroboros.Network.Protocol.LocalStateQuery.Client (Some (..))
@@ -158,7 +146,7 @@ data QueryInMode mode result where
   QueryInEra
     :: EraInMode era mode
     -> QueryInEra era result
-    -> QueryInMode mode (Either EraMismatch result)
+    -> QueryInMode mode (Either Consensus.EraMismatch result)
 
   QueryEraHistory
     :: ConsensusModeIsMultiEra mode
@@ -186,19 +174,19 @@ data EraHistory mode where
   EraHistory
     :: ConsensusBlockForMode mode ~ Consensus.HardForkBlock xs
     => ConsensusMode mode
-    -> History.Interpreter xs
+    -> Consensus.Interpreter xs
     -> EraHistory mode
 
-getProgress :: SlotNo -> EraHistory mode -> Either Qry.PastHorizonException (RelativeTime, SlotLength)
-getProgress slotNo (EraHistory _ interpreter) = Qry.interpretQuery interpreter (Qry.slotToWallclock slotNo)
+getProgress :: SlotNo -> EraHistory mode -> Either Consensus.PastHorizonException (RelativeTime, SlotLength)
+getProgress slotNo (EraHistory _ interpreter) = Consensus.interpretQuery interpreter (Consensus.slotToWallclock slotNo)
 
 -- | Returns the slot number for provided relative time from 'SystemStart'
-getSlotForRelativeTime :: RelativeTime -> EraHistory mode -> Either Qry.PastHorizonException SlotNo
+getSlotForRelativeTime :: RelativeTime -> EraHistory mode -> Either Consensus.PastHorizonException SlotNo
 getSlotForRelativeTime relTime (EraHistory _ interpreter) = do
-  (slotNo, _, _) <- Qry.interpretQuery interpreter $ Qry.wallclockToSlot relTime
+  (slotNo, _, _) <- Consensus.interpretQuery interpreter $ Consensus.wallclockToSlot relTime
   pure slotNo
 
-newtype LedgerEpochInfo = LedgerEpochInfo { unLedgerEpochInfo :: Consensus.EpochInfo (Either Text) }
+newtype LedgerEpochInfo = LedgerEpochInfo { unLedgerEpochInfo :: EpochInfo (Either Text) }
 
 toLedgerEpochInfo :: EraHistory mode -> LedgerEpochInfo
 toLedgerEpochInfo (EraHistory _ interpreter) =
@@ -214,8 +202,8 @@ newtype SlotsInEpoch = SlotsInEpoch Word64
 
 newtype SlotsToEpochEnd = SlotsToEpochEnd Word64
 
-slotToEpoch :: SlotNo -> EraHistory mode -> Either Qry.PastHorizonException (EpochNo, SlotsInEpoch, SlotsToEpochEnd)
-slotToEpoch slotNo (EraHistory _ interpreter) = case Qry.interpretQuery interpreter (Qry.slotToEpoch slotNo) of
+slotToEpoch :: SlotNo -> EraHistory mode -> Either Consensus.PastHorizonException (EpochNo, SlotsInEpoch, SlotsToEpochEnd)
+slotToEpoch slotNo (EraHistory _ interpreter) = case Consensus.interpretQuery interpreter (Consensus.slotToEpoch slotNo) of
   Right (epochNumber, slotsInEpoch, slotsToEpochEnd) -> Right (epochNumber, SlotsInEpoch slotsInEpoch, SlotsToEpochEnd slotsToEpochEnd)
   Left e -> Left e
 
@@ -457,7 +445,7 @@ decodeStakeSnapshot (SerialisedStakeSnapshots (Serialised ls)) = StakeSnapshot <
 
 toShelleyAddrSet :: CardanoEra era
                  -> Set AddressAny
-                 -> Set (Shelley.Addr Consensus.StandardCrypto)
+                 -> Set (Shelley.Addr StandardCrypto)
 toShelleyAddrSet era =
     Set.fromList
   . map toShelleyAddr
@@ -514,7 +502,7 @@ fromShelleyDelegations =
   . map (bimap fromShelleyStakeCredential StakePoolKeyHash)
   . Map.toList
 
-fromShelleyRewardAccounts :: Shelley.RewardAccounts Consensus.StandardCrypto
+fromShelleyRewardAccounts :: Shelley.RewardAccounts StandardCrypto
                           -> Map StakeCredential Lovelace
 fromShelleyRewardAccounts =
     --TODO: write an appropriate property to show it is safe to use
@@ -574,7 +562,7 @@ toConsensusQuery (QueryInEra erainmode (QueryInShelleyBasedEra sbe q)) =
 toConsensusQueryShelleyBased
   :: forall era ledgerera mode protocol block xs result.
      ConsensusBlockForEra era ~ Consensus.ShelleyBlock protocol ledgerera
-  => Core.EraCrypto ledgerera ~ Consensus.StandardCrypto
+  => Core.EraCrypto ledgerera ~ StandardCrypto
   => ConsensusBlockForMode mode ~ block
   => block ~ Consensus.HardForkBlock xs
   => EraInMode era mode
@@ -604,13 +592,13 @@ toConsensusQueryShelleyBased erainmode (QueryUTxO QueryUTxOWhole) =
 toConsensusQueryShelleyBased erainmode (QueryUTxO (QueryUTxOByAddress addrs)) =
     Some (consensusQueryInEraInMode erainmode (Consensus.GetUTxOByAddress addrs'))
   where
-    addrs' :: Set (Shelley.Addr Consensus.StandardCrypto)
+    addrs' :: Set (Shelley.Addr StandardCrypto)
     addrs' = toShelleyAddrSet (eraInModeToEra erainmode) addrs
 
 toConsensusQueryShelleyBased erainmode (QueryUTxO (QueryUTxOByTxIn txins)) =
     Some (consensusQueryInEraInMode erainmode (Consensus.GetUTxOByTxIn txins'))
   where
-    txins' :: Set (Shelley.TxIn Consensus.StandardCrypto)
+    txins' :: Set (Shelley.TxIn StandardCrypto)
     txins' = Set.map toShelleyTxIn txins
 
 toConsensusQueryShelleyBased erainmode (QueryStakeAddresses creds _nId) =
@@ -626,7 +614,7 @@ toConsensusQueryShelleyBased erainmode QueryStakePools =
 toConsensusQueryShelleyBased erainmode (QueryStakePoolParameters poolids) =
     Some (consensusQueryInEraInMode erainmode (Consensus.GetStakePoolParams poolids'))
   where
-    poolids' :: Set (Shelley.KeyHash Shelley.StakePool Consensus.StandardCrypto)
+    poolids' :: Set (Shelley.KeyHash Shelley.StakePool StandardCrypto)
     poolids' = Set.map unStakePoolKeyHash poolids
 
 toConsensusQueryShelleyBased erainmode QueryDebugLedgerState =
@@ -647,12 +635,12 @@ toConsensusQueryShelleyBased erainmode (QueryStakeSnapshot mPoolIds) =
 toConsensusQueryShelleyBased erainmode (QueryPoolDistribution poolIds) =
     Some (consensusQueryInEraInMode erainmode (Consensus.GetCBOR (Consensus.GetPoolDistr (getPoolIds <$> poolIds))))
   where
-    getPoolIds :: Set PoolId -> Set (Shelley.KeyHash Shelley.StakePool Consensus.StandardCrypto)
+    getPoolIds :: Set PoolId -> Set (Shelley.KeyHash Shelley.StakePool StandardCrypto)
     getPoolIds = Set.map (\(StakePoolKeyHash kh) -> kh)
 toConsensusQueryShelleyBased erainmode (QueryStakeDelegDeposits stakeCreds) =
     Some (consensusQueryInEraInMode erainmode (Consensus.GetStakeDelegDeposits stakeCreds'))
   where
-    stakeCreds' :: Set (Shelley.StakeCredential Consensus.StandardCrypto)
+    stakeCreds' :: Set (Shelley.StakeCredential StandardCrypto)
     stakeCreds' = Set.map toShelleyStakeCredential stakeCreds
 
 consensusQueryInEraInMode
@@ -812,7 +800,7 @@ fromConsensusQueryResult (QueryInEra ConwayEraInCardanoMode
 fromConsensusQueryResultShelleyBased
   :: forall era ledgerera protocol result result'.
      ShelleyLedgerEra era ~ ledgerera
-  => Core.EraCrypto ledgerera ~ Consensus.StandardCrypto
+  => Core.EraCrypto ledgerera ~ StandardCrypto
   => ConsensusProtocol era ~ protocol
   => ShelleyBasedEra era
   -> QueryInShelleyBasedEra era result
@@ -943,5 +931,5 @@ fromConsensusQueryResultMismatch =
 
 
 fromConsensusEraMismatch :: SListI xs
-                         => Consensus.MismatchEraInfo xs -> EraMismatch
+                         => Consensus.MismatchEraInfo xs -> Consensus.EraMismatch
 fromConsensusEraMismatch = Consensus.mkEraMismatch

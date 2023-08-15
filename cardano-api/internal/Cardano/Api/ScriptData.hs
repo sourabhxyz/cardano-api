@@ -60,8 +60,9 @@ import qualified Cardano.Binary as CBOR
 import qualified Cardano.Crypto.Hash.Class as Crypto
 import qualified Cardano.Ledger.Alonzo.Scripts.Data as Alonzo
 import           Cardano.Ledger.Core (Era)
+import           Cardano.Ledger.Crypto
 import qualified Cardano.Ledger.SafeHash as Ledger
-import           Ouroboros.Consensus.Shelley.Eras (StandardAlonzo, StandardCrypto)
+import Cardano.Consensus.API
 import qualified PlutusLedgerApi.V1 as Plutus
 
 import           Codec.Serialise.Class (Serialise (..))

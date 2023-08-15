@@ -74,7 +74,7 @@ import           Cardano.Ledger.Mary.Value (MaryValue)
 import qualified Cardano.Ledger.Shelley.API.Wallet as Ledger (evaluateTransactionFee)
 import           Cardano.Ledger.Shelley.TxBody (ShelleyEraTxBody)
 import           Cardano.Ledger.UTxO as Ledger (EraUTxO)
-import qualified Ouroboros.Consensus.HardFork.History as Consensus
+import qualified Cardano.Consensus.API as Consensus
 import qualified PlutusLedgerApi.V1 as Plutus
 
 import           Control.Monad (forM_)

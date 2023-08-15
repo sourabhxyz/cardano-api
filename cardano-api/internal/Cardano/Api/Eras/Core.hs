@@ -68,8 +68,7 @@ import           Cardano.Api.HasTypeProxy
 
 import qualified Cardano.Ledger.Api as L
 import qualified Cardano.Ledger.BaseTypes as L
-import           Ouroboros.Consensus.Shelley.Eras as Consensus (StandardAllegra, StandardAlonzo,
-                   StandardBabbage, StandardConway, StandardMary, StandardShelley)
+import qualified Cardano.Consensus.API as Consensus
 
 import           Control.DeepSeq
 import           Data.Aeson (FromJSON (..), ToJSON, toJSON, withText)

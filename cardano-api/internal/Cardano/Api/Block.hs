@@ -65,20 +65,11 @@ import qualified Cardano.Chain.UTxO as Byron
 import qualified Cardano.Crypto.Hash.Class as Crypto
 import qualified Cardano.Crypto.Hashing
 import qualified Cardano.Ledger.Block as Ledger
+import  Cardano.Ledger.Crypto (StandardCrypto)
 import qualified Cardano.Ledger.Era as Ledger
 import           Cardano.Slotting.Block (BlockNo)
-import           Cardano.Slotting.Slot (EpochNo, SlotNo, WithOrigin (..))
-import qualified Ouroboros.Consensus.Block as Consensus
-import qualified Ouroboros.Consensus.Byron.Ledger as Consensus
-import qualified Ouroboros.Consensus.Cardano.Block as Consensus
-import qualified Ouroboros.Consensus.Cardano.ByronHFC as Consensus
-import qualified Ouroboros.Consensus.HardFork.Combinator as Consensus
-import qualified Ouroboros.Consensus.HardFork.Combinator.Degenerate as Consensus
-import qualified Ouroboros.Consensus.Ledger.SupportsProtocol as Consensus
-import qualified Ouroboros.Consensus.Protocol.TPraos as Consensus
-import qualified Ouroboros.Consensus.Shelley.Ledger as Consensus
-import qualified Ouroboros.Consensus.Shelley.Protocol.Abstract as Consensus
-import qualified Ouroboros.Consensus.Shelley.ShelleyHFC as Consensus
+import           Cardano.Slotting.Slot (EpochNo(..), SlotNo, WithOrigin (..))
+import qualified Cardano.Consensus.API as Consensus
 import qualified Ouroboros.Network.Block as Consensus
 
 import           Data.Aeson (FromJSON (..), ToJSON (..), Value (..), object, withObject, (.:), (.=))
@@ -205,8 +196,8 @@ deriving instance Show (BlockInMode mode)
 fromConsensusBlock :: ConsensusBlockForMode mode ~ block
                    => Consensus.LedgerSupportsProtocol
                         (Consensus.ShelleyBlock
-                        (Consensus.TPraos Consensus.StandardCrypto)
-                        (Consensus.ShelleyEra Consensus.StandardCrypto))
+                        (Consensus.TPraos StandardCrypto)
+                        (Consensus.ShelleyEra StandardCrypto))
                    => ConsensusMode mode -> block -> BlockInMode mode
 fromConsensusBlock ByronMode =
     \b -> case b of
@@ -252,8 +243,8 @@ toConsensusBlock
   :: ConsensusBlockForMode mode ~ block
   => Consensus.LedgerSupportsProtocol
        (Consensus.ShelleyBlock
-       (Consensus.TPraos Consensus.StandardCrypto)
-       (Consensus.ShelleyEra Consensus.StandardCrypto))
+       (Consensus.TPraos StandardCrypto)
+       (Consensus.ShelleyEra StandardCrypto))
   => BlockInMode mode -> block
 toConsensusBlock bInMode =
   case bInMode of
@@ -473,7 +464,7 @@ fromConsensusTip ByronMode = conv
 
 fromConsensusTip ShelleyMode = conv
   where
-    conv :: Consensus.Tip (Consensus.ShelleyBlockHFC (Consensus.TPraos Consensus.StandardCrypto) Consensus.StandardShelley)
+    conv :: Consensus.Tip (Consensus.ShelleyBlockHFC (Consensus.TPraos StandardCrypto) Consensus.StandardShelley)
          -> ChainTip
     conv Consensus.TipGenesis = ChainTipAtGenesis
     conv (Consensus.Tip slot (Consensus.OneEraHash hashSBS) block) =
@@ -481,7 +472,7 @@ fromConsensusTip ShelleyMode = conv
 
 fromConsensusTip CardanoMode = conv
   where
-    conv :: Consensus.Tip (Consensus.CardanoBlock Consensus.StandardCrypto)
+    conv :: Consensus.Tip (Consensus.CardanoBlock StandardCrypto)
          -> ChainTip
     conv Consensus.TipGenesis = ChainTipAtGenesis
     conv (Consensus.Tip slot (Consensus.OneEraHash h) block) =

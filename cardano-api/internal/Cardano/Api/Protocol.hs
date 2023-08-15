@@ -20,22 +20,8 @@ module Cardano.Api.Protocol
 
 import           Cardano.Api.Modes
 
-import           Ouroboros.Consensus.Block.Forging (BlockForging)
-import           Ouroboros.Consensus.Cardano
-import           Ouroboros.Consensus.Cardano.Block
-import           Ouroboros.Consensus.Cardano.ByronHFC (ByronBlockHFC)
-import           Ouroboros.Consensus.Cardano.Node
-import           Ouroboros.Consensus.HardFork.Combinator.Embed.Unary
-import qualified Ouroboros.Consensus.Ledger.SupportsProtocol as Consensus
-import           Ouroboros.Consensus.Node.ProtocolInfo (ProtocolClientInfo (..), ProtocolInfo (..))
-import           Ouroboros.Consensus.Node.Run (RunNode)
-import           Ouroboros.Consensus.Protocol.Praos.Translate ()
-import qualified Ouroboros.Consensus.Protocol.TPraos as Consensus
-import qualified Ouroboros.Consensus.Shelley.Eras as Consensus
-import qualified Ouroboros.Consensus.Shelley.Ledger.Block as Consensus
-import           Ouroboros.Consensus.Shelley.Node.Praos
-import           Ouroboros.Consensus.Shelley.ShelleyHFC (ShelleyBlockHFC)
-import           Ouroboros.Consensus.Util.IOLike (IOLike)
+import Cardano.Ledger.Crypto
+import Cardano.Consensus.API
 
 import           Data.Bifunctor (bimap)
 
@@ -124,29 +110,29 @@ instance CardanoHardForkConstraints StandardCrypto => ProtocolClient (CardanoBlo
     protocolClientInfoCardano epochSlots
 
 instance ( IOLike m
-         , Consensus.LedgerSupportsProtocol
-             (Consensus.ShelleyBlock
-                (Consensus.TPraos StandardCrypto) (ShelleyEra StandardCrypto))
+         , LedgerSupportsProtocol
+             (ShelleyBlock
+                (TPraos StandardCrypto) (ShelleyEra StandardCrypto))
          )
-  => Protocol m (ShelleyBlockHFC (Consensus.TPraos StandardCrypto) StandardShelley) where
-  data ProtocolInfoArgs (ShelleyBlockHFC (Consensus.TPraos StandardCrypto) StandardShelley) = ProtocolInfoArgsShelley
+  => Protocol m (ShelleyBlockHFC (TPraos StandardCrypto) StandardShelley) where
+  data ProtocolInfoArgs (ShelleyBlockHFC (TPraos StandardCrypto) StandardShelley) = ProtocolInfoArgsShelley
     (ProtocolParamsShelleyBased StandardShelley)
     (ProtocolParamsShelley StandardCrypto)
   protocolInfo (ProtocolInfoArgsShelley paramsShelleyBased paramsShelley) =
     bimap inject (fmap $ map inject) $ protocolInfoShelley paramsShelleyBased paramsShelley
 
-instance Consensus.LedgerSupportsProtocol
-          (Consensus.ShelleyBlock
-            (Consensus.TPraos StandardCrypto) (Consensus.ShelleyEra StandardCrypto))
-  => ProtocolClient (ShelleyBlockHFC (Consensus.TPraos StandardCrypto) StandardShelley) where
-  data ProtocolClientInfoArgs (ShelleyBlockHFC (Consensus.TPraos StandardCrypto) StandardShelley) =
+instance LedgerSupportsProtocol
+          (ShelleyBlock
+            (TPraos StandardCrypto) (ShelleyEra StandardCrypto))
+  => ProtocolClient (ShelleyBlockHFC (TPraos StandardCrypto) StandardShelley) where
+  data ProtocolClientInfoArgs (ShelleyBlockHFC (TPraos StandardCrypto) StandardShelley) =
     ProtocolClientInfoArgsShelley
   protocolClientInfo ProtocolClientInfoArgsShelley =
     inject protocolClientInfoShelley
 
 data BlockType blk where
   ByronBlockType :: BlockType ByronBlockHFC
-  ShelleyBlockType :: BlockType (ShelleyBlockHFC (Consensus.TPraos StandardCrypto) StandardShelley)
+  ShelleyBlockType :: BlockType (ShelleyBlockHFC (TPraos StandardCrypto) StandardShelley)
   CardanoBlockType :: BlockType (CardanoBlock StandardCrypto)
 
 deriving instance Eq (BlockType blk)

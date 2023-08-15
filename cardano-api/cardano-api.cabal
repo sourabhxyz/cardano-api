@@ -119,6 +119,7 @@ library internal
                         -- we create wrapper types for the ledger types
                         -- in this module
                         Cardano.Api.Orphans
+                        Cardano.Consensus.API
 
   build-depends:        aeson             >= 1.5.6.0
                       , aeson-pretty      >= 0.8.5

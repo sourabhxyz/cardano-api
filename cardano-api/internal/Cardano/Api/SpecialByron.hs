@@ -35,8 +35,7 @@ import qualified Cardano.Chain.Update.Vote as ByronVote
 import           Cardano.Crypto (SafeSigner, noPassSafeSigner)
 import qualified Cardano.Ledger.Binary as Binary (Annotated (..), ByteSpan (..), annotation,
                    annotationBytes, byronProtVer, reAnnotate)
-import           Ouroboros.Consensus.Byron.Ledger.Block (ByronBlock)
-import qualified Ouroboros.Consensus.Byron.Ledger.Mempool as Mempool
+import qualified Cardano.Consensus.API as Consensus
 
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as LB
@@ -156,9 +155,9 @@ makeProtocolParametersUpdate apiPpu =
     , ppuUnlockStakeEpoch = bPpuUnlockStakeEpoch apiPpu
     }
 
-toByronLedgerUpdateProposal :: ByronUpdateProposal -> Mempool.GenTx ByronBlock
+toByronLedgerUpdateProposal :: ByronUpdateProposal -> Consensus.GenTx Consensus.ByronBlock
 toByronLedgerUpdateProposal (ByronUpdateProposal proposal) =
-  Mempool.ByronUpdateProposal (recoverUpId proposal) proposal
+  Consensus.ByronUpdateProposal (recoverUpId proposal) proposal
 
 -- | Byron era votes
 
@@ -199,8 +198,8 @@ makeByronVote nId sKey (ByronUpdateProposal proposal) yesOrNo =
                           , ByronVote.annotation = Binary.annotation annotatedProposalId
                           }
 
-toByronLedgertoByronVote :: ByronVote -> Mempool.GenTx ByronBlock
-toByronLedgertoByronVote (ByronVote vote) = Mempool.ByronUpdateVote (recoverVoteId vote) vote
+toByronLedgertoByronVote :: ByronVote -> Consensus.GenTx Consensus.ByronBlock
+toByronLedgertoByronVote (ByronVote vote) = Consensus.ByronUpdateVote (recoverVoteId vote) vote
 
 -- | An application name.
 -- It has no functional impact in the Shelley eras onwards and therefore it is hardcoded.

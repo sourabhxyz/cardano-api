@@ -240,9 +240,7 @@ import qualified Cardano.Ledger.Shelley.TxCert as Shelley
 import qualified Cardano.Ledger.TxIn as L
 import           Cardano.Ledger.Val as L (isZero)
 import           Cardano.Slotting.Slot (SlotNo (..))
-import           Ouroboros.Consensus.Shelley.Eras (StandardAllegra, StandardAlonzo, StandardBabbage,
-                   StandardConway, StandardMary, StandardShelley)
-
+import qualified Cardano.Consensus.API as Consensus
 import           Control.Applicative (some)
 import           Control.Monad (guard, unless)
 import           Data.Aeson (object, withObject, (.:), (.:?), (.=))
@@ -3672,14 +3670,14 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraShelley
         txAuxData
         TxScriptValidityNone
   where
-    scripts_ :: [Ledger.Script StandardShelley]
+    scripts_ :: [Ledger.Script Consensus.StandardShelley]
     scripts_ = catMaybes
       [ toShelleyScript <$> scriptWitnessScript scriptwitness
       | (_, AnyScriptWitness scriptwitness)
           <- collectTxBodyScriptWitnesses sbe txbodycontent
       ]
 
-    txAuxData :: Maybe (L.TxAuxData StandardShelley)
+    txAuxData :: Maybe (L.TxAuxData Consensus.StandardShelley)
     txAuxData = toAuxiliaryData sbe txMetadata TxAuxScriptsNone
 
 makeShelleyTransactionBody sbe@ShelleyBasedEraAllegra
@@ -3709,14 +3707,14 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraAllegra
         txAuxData
         TxScriptValidityNone
   where
-    scripts_ :: [Ledger.Script StandardAllegra]
+    scripts_ :: [Ledger.Script Consensus.StandardAllegra]
     scripts_ = catMaybes
       [ toShelleyScript <$> scriptWitnessScript scriptwitness
       | (_, AnyScriptWitness scriptwitness)
           <- collectTxBodyScriptWitnesses sbe txbodycontent
       ]
 
-    txAuxData :: Maybe (L.TxAuxData StandardAllegra)
+    txAuxData :: Maybe (L.TxAuxData Consensus.StandardAllegra)
     txAuxData = toAuxiliaryData sbe txMetadata txAuxScripts
 
 makeShelleyTransactionBody sbe@ShelleyBasedEraMary
@@ -3748,14 +3746,14 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraMary
         txAuxData
         TxScriptValidityNone
   where
-    scripts :: [Ledger.Script StandardMary]
+    scripts :: [Ledger.Script Consensus.StandardMary]
     scripts = List.nub $ catMaybes
       [ toShelleyScript <$> scriptWitnessScript scriptwitness
       | (_, AnyScriptWitness scriptwitness)
           <- collectTxBodyScriptWitnesses sbe txbodycontent
       ]
 
-    txAuxData :: Maybe (L.TxAuxData StandardMary)
+    txAuxData :: Maybe (L.TxAuxData Consensus.StandardMary)
     txAuxData = toAuxiliaryData sbe txMetadata txAuxScripts
 
 makeShelleyTransactionBody sbe@ShelleyBasedEraAlonzo
@@ -3800,13 +3798,13 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraAlonzo
     witnesses :: [(ScriptWitnessIndex, AnyScriptWitness AlonzoEra)]
     witnesses = collectTxBodyScriptWitnesses sbe txbodycontent
 
-    scripts :: [Ledger.Script StandardAlonzo]
+    scripts :: [Ledger.Script Consensus.StandardAlonzo]
     scripts = List.nub $ catMaybes
       [ toShelleyScript <$> scriptWitnessScript scriptwitness
       | (_, AnyScriptWitness scriptwitness) <- witnesses
       ]
 
-    datums :: Alonzo.TxDats StandardAlonzo
+    datums :: Alonzo.TxDats Consensus.StandardAlonzo
     datums =
       Alonzo.TxDats $
         Map.fromList
@@ -3822,7 +3820,7 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraAlonzo
                        _ _ _ (ScriptDatumForTxIn d) _ _)) <- witnesses
             ]
 
-    redeemers :: Alonzo.Redeemers StandardAlonzo
+    redeemers :: Alonzo.Redeemers Consensus.StandardAlonzo
     redeemers =
       Alonzo.Redeemers $
         Map.fromList
@@ -3838,7 +3836,7 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraAlonzo
         | (_, AnyScriptWitness (PlutusScriptWitness _ v _ _ _ _)) <- witnesses
         ]
 
-    txAuxData :: Maybe (L.TxAuxData StandardAlonzo)
+    txAuxData :: Maybe (L.TxAuxData Consensus.StandardAlonzo)
     txAuxData = toAuxiliaryData sbe txMetadata txAuxScripts
 
 makeShelleyTransactionBody sbe@ShelleyBasedEraBabbage
@@ -3893,14 +3891,14 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraBabbage
     witnesses :: [(ScriptWitnessIndex, AnyScriptWitness BabbageEra)]
     witnesses = collectTxBodyScriptWitnesses sbe txbodycontent
 
-    scripts :: [Ledger.Script StandardBabbage]
+    scripts :: [Ledger.Script Consensus.StandardBabbage]
     scripts = List.nub $ catMaybes
       [ toShelleyScript <$> scriptWitnessScript scriptwitness
       | (_, AnyScriptWitness scriptwitness) <- witnesses
       ]
 
     -- Note these do not include inline datums!
-    datums :: Alonzo.TxDats StandardBabbage
+    datums :: Alonzo.TxDats Consensus.StandardBabbage
     datums =
       Alonzo.TxDats $
         Map.fromList
@@ -3917,7 +3915,7 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraBabbage
                        _ _ _ (ScriptDatumForTxIn d) _ _)) <- witnesses
             ]
 
-    redeemers :: Alonzo.Redeemers StandardBabbage
+    redeemers :: Alonzo.Redeemers Consensus.StandardBabbage
     redeemers =
       Alonzo.Redeemers $
         Map.fromList
@@ -3938,7 +3936,7 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraBabbage
       Just $ toAlonzoLanguage (AnyPlutusScriptVersion v)
     getScriptLanguage SimpleScriptWitness{} = Nothing
 
-    txAuxData :: Maybe (L.TxAuxData StandardBabbage)
+    txAuxData :: Maybe (L.TxAuxData Consensus.StandardBabbage)
     txAuxData = toAuxiliaryData sbe txMetadata txAuxScripts
 
 makeShelleyTransactionBody sbe@ShelleyBasedEraConway
@@ -3994,14 +3992,14 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraConway
     witnesses :: [(ScriptWitnessIndex, AnyScriptWitness ConwayEra)]
     witnesses = collectTxBodyScriptWitnesses sbe txbodycontent
 
-    scripts :: [Ledger.Script StandardConway]
+    scripts :: [Ledger.Script Consensus.StandardConway]
     scripts = catMaybes
       [ toShelleyScript <$> scriptWitnessScript scriptwitness
       | (_, AnyScriptWitness scriptwitness) <- witnesses
       ]
 
     -- Note these do not include inline datums!
-    datums :: Alonzo.TxDats StandardConway
+    datums :: Alonzo.TxDats Consensus.StandardConway
     datums =
       Alonzo.TxDats $
         Map.fromList
@@ -4017,7 +4015,7 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraConway
                        _ _ _ (ScriptDatumForTxIn d) _ _)) <- witnesses
             ]
 
-    redeemers :: Alonzo.Redeemers StandardConway
+    redeemers :: Alonzo.Redeemers Consensus.StandardConway
     redeemers =
       Alonzo.Redeemers $
         Map.fromList
@@ -4038,7 +4036,7 @@ makeShelleyTransactionBody sbe@ShelleyBasedEraConway
       Just $ toAlonzoLanguage (AnyPlutusScriptVersion v)
     getScriptLanguage SimpleScriptWitness{} = Nothing
 
-    txAuxData :: Maybe (L.TxAuxData StandardConway)
+    txAuxData :: Maybe (L.TxAuxData Consensus.StandardConway)
     txAuxData = toAuxiliaryData sbe txMetadata txAuxScripts
 
 

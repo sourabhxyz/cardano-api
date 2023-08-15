@@ -27,9 +27,7 @@ import qualified Cardano.Ledger.BaseTypes as L
 import           Cardano.Ledger.Binary (FromCBOR)
 import qualified Cardano.Ledger.Core as L
 import qualified Cardano.Ledger.SafeHash as L
-import qualified Ouroboros.Consensus.Protocol.Abstract as Consensus
-import qualified Ouroboros.Consensus.Protocol.Praos.Common as Consensus
-import qualified Ouroboros.Consensus.Shelley.Ledger as Consensus
+import qualified Cardano.Consensus.API as Consensus
 
 import           Data.Aeson (ToJSON)
 import           Data.Typeable (Typeable)

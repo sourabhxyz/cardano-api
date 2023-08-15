@@ -93,19 +93,9 @@ import           Cardano.Api.Protocol
 import           Cardano.Api.Query
 import           Cardano.Api.Tx (getTxBody)
 import           Cardano.Api.TxBody
+import Cardano.Ledger.Crypto (StandardCrypto)
 
-import qualified Ouroboros.Consensus.Block as Consensus
-import           Ouroboros.Consensus.Cardano.CanHardFork
-import qualified Ouroboros.Consensus.Ledger.Query as Consensus
-import qualified Ouroboros.Consensus.Ledger.SupportsMempool as Consensus
-import qualified Ouroboros.Consensus.Ledger.SupportsProtocol as Consensus
-import qualified Ouroboros.Consensus.Network.NodeToClient as Consensus
-import qualified Ouroboros.Consensus.Node.NetworkProtocolVersion as Consensus
-import qualified Ouroboros.Consensus.Node.ProtocolInfo as Consensus
-import qualified Ouroboros.Consensus.Protocol.TPraos as Consensus
-import qualified Ouroboros.Consensus.Shelley.Eras as Consensus
-import qualified Ouroboros.Consensus.Shelley.Ledger.Block as Consensus
-import           Ouroboros.Consensus.Shelley.Ledger.SupportsProtocol ()
+import qualified Cardano.Consensus.API as Consensus
 import qualified Ouroboros.Network.Block as Net
 import qualified Ouroboros.Network.Mux as Net
 import           Ouroboros.Network.NodeToClient (NodeToClientProtocols (..),
@@ -358,8 +348,8 @@ data LocalNodeClientParams where
        :: (ProtocolClient block,
            Consensus.LedgerSupportsProtocol
            (Consensus.ShelleyBlock
-              (Consensus.TPraos Consensus.StandardCrypto)
-              (Consensus.ShelleyEra Consensus.StandardCrypto))
+              (Consensus.TPraos StandardCrypto)
+              (Consensus.ShelleyEra StandardCrypto))
 
            )
        => ProtocolClientInfoArgs block
@@ -367,7 +357,7 @@ data LocalNodeClientParams where
        -> LocalNodeClientParams
 
      LocalNodeClientParamsCardano
-      :: (ProtocolClient block, CardanoHardForkConstraints (ConsensusCryptoForBlock block))
+      :: (ProtocolClient block, Consensus.CardanoHardForkConstraints (ConsensusCryptoForBlock block))
       => ProtocolClientInfoArgs block
       -> (NodeToClientVersion -> LocalNodeClientProtocolsForBlock block)
       -> LocalNodeClientParams

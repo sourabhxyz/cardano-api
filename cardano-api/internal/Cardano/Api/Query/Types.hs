@@ -22,7 +22,7 @@ import qualified Cardano.Ledger.Binary.Plain as Plain
 import qualified Cardano.Ledger.Shelley.API as Shelley
 import qualified Cardano.Ledger.Shelley.Core as Core
 import qualified Cardano.Ledger.Shelley.LedgerState as Shelley
-import qualified Ouroboros.Consensus.Cardano.Block as Consensus
+import Cardano.Consensus.API as Consensus
 
 import           Data.Aeson (ToJSON (..), object, (.=))
 import qualified Data.Aeson as Aeson

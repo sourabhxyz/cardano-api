@@ -50,15 +50,7 @@ import           Cardano.Api.Eras.Core
 
 import qualified Cardano.Chain.Slotting as Byron (EpochSlots (..))
 import           Cardano.Ledger.Crypto (StandardCrypto)
-import qualified Ouroboros.Consensus.Byron.Ledger as Consensus
-import qualified Ouroboros.Consensus.Cardano.Block as Consensus
-import qualified Ouroboros.Consensus.Cardano.ByronHFC as Consensus
-import           Ouroboros.Consensus.HardFork.Combinator as Consensus (EraIndex (..), eraIndexSucc,
-                   eraIndexZero)
-import qualified Ouroboros.Consensus.Protocol.Praos as Consensus
-import qualified Ouroboros.Consensus.Protocol.TPraos as Consensus
-import qualified Ouroboros.Consensus.Shelley.HFEras as Consensus
-import qualified Ouroboros.Consensus.Shelley.ShelleyHFC as Consensus
+import qualified Cardano.Consensus.API as Consensus
 
 import           Data.Aeson (FromJSON (parseJSON), ToJSON (toJSON), Value)
 import           Data.Aeson.Types (Parser, prependFailure, typeMismatch)
@@ -349,22 +341,22 @@ eraIndex0 :: Consensus.EraIndex (x0 : xs)
 eraIndex0 = Consensus.eraIndexZero
 
 eraIndex1 :: Consensus.EraIndex (x1 : x0 : xs)
-eraIndex1 = eraIndexSucc eraIndex0
+eraIndex1 = Consensus.eraIndexSucc eraIndex0
 
 eraIndex2 :: Consensus.EraIndex (x2 : x1 : x0 : xs)
-eraIndex2 = eraIndexSucc eraIndex1
+eraIndex2 = Consensus.eraIndexSucc eraIndex1
 
 eraIndex3 :: Consensus.EraIndex (x3 : x2 : x1 : x0 : xs)
-eraIndex3 = eraIndexSucc eraIndex2
+eraIndex3 = Consensus.eraIndexSucc eraIndex2
 
 eraIndex4 :: Consensus.EraIndex (x4 : x3 : x2 : x1 : x0 : xs)
-eraIndex4 = eraIndexSucc eraIndex3
+eraIndex4 = Consensus.eraIndexSucc eraIndex3
 
 eraIndex5 :: Consensus.EraIndex (x5 : x4 : x3 : x2 : x1 : x0 : xs)
-eraIndex5 = eraIndexSucc eraIndex4
+eraIndex5 = Consensus.eraIndexSucc eraIndex4
 
 eraIndex6 :: Consensus.EraIndex (x6 : x5 : x4 : x3 : x2 : x1 : x0 : xs)
-eraIndex6 = eraIndexSucc eraIndex5
+eraIndex6 = Consensus.eraIndexSucc eraIndex5
 
 toConsensusEraIndex :: ConsensusBlockForMode mode ~ Consensus.HardForkBlock xs
                     => EraInMode era mode

@@ -28,14 +28,7 @@ import qualified Cardano.Protocol.TPraos.API as Ledger
 import           Cardano.Protocol.TPraos.BHeader (HashHeader (..))
 import qualified Cardano.Protocol.TPraos.Rules.Prtcl as Ledger
 import qualified Cardano.Protocol.TPraos.Rules.Tickn as Ledger
-import           Ouroboros.Consensus.Byron.Ledger.Block (ByronHash (..))
-import           Ouroboros.Consensus.HardFork.Combinator (OneEraHash (..))
-import           Ouroboros.Consensus.Protocol.Praos (PraosState)
-import qualified Ouroboros.Consensus.Protocol.Praos as Consensus
-import           Ouroboros.Consensus.Protocol.TPraos (TPraosState)
-import qualified Ouroboros.Consensus.Protocol.TPraos as Consensus
-import           Ouroboros.Consensus.Shelley.Ledger.Block (ShelleyHash (..))
-import qualified Ouroboros.Consensus.Shelley.Ledger.Query as Consensus
+import Cardano.Consensus.API as Consensus
 import           Ouroboros.Network.Block (HeaderHash, Tip (..))
 
 import qualified Codec.Binary.Bech32 as Bech32

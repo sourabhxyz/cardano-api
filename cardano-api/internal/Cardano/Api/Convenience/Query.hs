@@ -29,7 +29,7 @@ import           Cardano.Api.TxBody
 import           Cardano.Api.Utils
 import           Cardano.Api.Value
 
-import           Ouroboros.Consensus.HardFork.Combinator.AcrossEras (EraMismatch (..))
+import Cardano.Consensus.API
 
 import           Control.Monad.Trans (MonadTrans (..))
 import           Control.Monad.Trans.Except (ExceptT (..), runExceptT)

@@ -1047,13 +1047,32 @@ makeTransactionBodyAutoBalance
             monoidForEraInEon (toCardanoEra sbe) $ \w ->
               toLedgerValue w $ calculateChangeValue sbe totalValueAtSpendableUTxO txbodycontent
 
+      -- Make a txbody that we will use for calculating the fees. For the purpose
+      -- of fees we just need to make a txbody of the right size in bytes. We do
+      -- not need the right values for the fee or change output. We use
+      -- "big enough" values for the change output and set so that the CBOR
+      -- encoding size of the tx will be big enough to cover the size of the final
+      -- output and fee. Yes this means this current code will only work for
+      -- final fee of less than around 4000 ada (2^32-1 lovelace) and change output
+      -- of less than around 18 trillion ada  (2^64-1 lovelace).
+      -- However, since at this point we know how much non-Ada change to give
+      -- we can use the true values for that.
+      let maxLovelaceChange = L.Coin (2 ^ (64 :: Integer)) - 1
+      let maxLovelaceFee = L.Coin (2 ^ (32 :: Integer) - 1)
+      let changeWithMaxLovelace = change & A.adaAssetL sbe .~ maxLovelaceChange
+      let changeTxOut =
+            forShelleyBasedEraInEon
+              sbe
+              (lovelaceToTxOutValue sbe maxLovelaceChange)
+              (\w -> maryEraOnwardsConstraints w $ TxOutValueShelleyBased sbe changeWithMaxLovelace)
+
       txbody0 <-
         first TxBodyError
           $ createTransactionBody
             sbe
           $ txbodycontent
             & modTxOuts
-              (<> [TxOut changeaddr (TxOutValueShelleyBased sbe change) TxOutDatumNone ReferenceScriptNone])
+              (<> [TxOut changeaddr changeTxOut TxOutDatumNone ReferenceScriptNone])
       exUnitsMapWithLogs <-
         first TxBodyErrorValidityInterval $
           evaluateTransactionExecutionUnits
@@ -1076,24 +1095,6 @@ makeTransactionBodyAutoBalance
 
       txbodycontent1 <- substituteExecutionUnits exUnitsMap' txbodycontent
 
-      -- Make a txbody that we will use for calculating the fees. For the purpose
-      -- of fees we just need to make a txbody of the right size in bytes. We do
-      -- not need the right values for the fee or change output. We use
-      -- "big enough" values for the change output and set so that the CBOR
-      -- encoding size of the tx will be big enough to cover the size of the final
-      -- output and fee. Yes this means this current code will only work for
-      -- final fee of less than around 4000 ada (2^32-1 lovelace) and change output
-      -- of less than around 18 trillion ada  (2^64-1 lovelace).
-      -- However, since at this point we know how much non-Ada change to give
-      -- we can use the true values for that.
-      let maxLovelaceChange = L.Coin (2 ^ (64 :: Integer)) - 1
-      let maxLovelaceFee = L.Coin (2 ^ (32 :: Integer) - 1)
-      let changeWithMaxLovelace = change & A.adaAssetL sbe .~ maxLovelaceChange
-      let changeTxOut =
-            forShelleyBasedEraInEon
-              sbe
-              (lovelaceToTxOutValue sbe maxLovelaceChange)
-              (\w -> maryEraOnwardsConstraints w $ TxOutValueShelleyBased sbe changeWithMaxLovelace)
 
       let (dummyCollRet, dummyTotColl) = maybeDummyTotalCollAndCollReturnOutput sbe txbodycontent changeaddr
       txbody1 <-

@@ -210,7 +210,7 @@ library internal
     ordered-containers,
     ouroboros-consensus ^>=0.22,
     ouroboros-consensus-cardano ^>=0.21,
-    ouroboros-consensus-diffusion ^>=0.19,
+    ouroboros-consensus-diffusion ^>=0.20,
     ouroboros-consensus-protocol ^>=0.10,
     ouroboros-network,
     ouroboros-network-api ^>=0.12,
